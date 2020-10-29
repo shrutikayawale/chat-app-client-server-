@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .input_zone {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+        }
+
+        .input_message {
+            height: 35px;
+            width: 700px;
+         } 
+
+        .input_btn {
+            height: 35px;
+            width: 60;            
+        }
+    </style>
+    <title>ChatApp</title>
+    <center><h2>Welcome to Chat app Demo</h2></center>
+
+    <div >
+        <input id="message1" placeholder="Person1 : Type your message here" class="input_message" type="text"
+            oninput="myFunction1()" />
+        <button id="send_message" class="input_btn" type="button" onclick="showMsgPerson1()">Send</button>
+    </div>
+
+    <div class="input_zone">
+        <input id="message2" placeholder="Person2 : Type your message here" class="input_message" type="text" oninput="myFunction2()" />
+        <button id="send_message" class="input_btn" type="button" onclick="showMsgPerson2()">Send</button>
+    </div>
+</head>
+
+<body>
+    <ul id="events"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+       
+
+        const $events = document.getElementById('events');
+
+        const clientMsg = (content) => {            
+            const item = document.createElement('p');
+            item.innerText = content;
+            item.style.fontWeight = 'bold'
+            item.style.fontSize = '150%';
+            item.style.fontFamily = 'cursive';
+            item.style.color = 'blue';
+            item.style.float = 'right';
+            return item;
+        };
+
+        const serverMsg = (content) => {
+            const item = document.createElement('p');
+            item.innerText = content;
+            item.style.fontWeight = 'bold'
+            item.style.fontSize = '150%';
+            item.style.fontFamily = 'cursive';
+            item.style.color = 'crimson';
+            item.style.width = '100%';
+            item.style.float = 'left';
+            return item;
+        };        
+
+         var typed;
+            function myFunction1() {
+                typed = document.getElementById("message1").value;
+            };
+            function myFunction2() {
+                    typed = document.getElementById("message2").value;
+                };
+
+        function showMsgPerson1() {
+                //send the msg and show in ui                
+                $events.appendChild(serverMsg(typed));
+                document.getElementById('message1').value = '';
+
+                socket.emit('sendMessage1', { message: typed  });
+        };
+        function showMsgPerson2() { //lets assume this is client
+                //send the msg and show in ui                
+                $events.appendChild(clientMsg(typed));
+                document.getElementById('message2').value = '';
+
+                socket.emit('sendMessage2', { message: typed });
+        };
+
+        const socket = io();
+
+        socket.on('connect', () => {
+           alert('Lets resume your conversation. ')
+        });  
+
+        socket.on('history', (data) => {
+            console.log('data',data)
+            data.forEach(element => {
+                if (element.person1) {
+                $events.appendChild(serverMsg(element.person1));
+                }
+                if (element.person2) {
+                   $events.appendChild(clientMsg(element.person2)); 
+                }                               
+            });
+        });        
+        
+    </script>
+</body>
+
+</html>
